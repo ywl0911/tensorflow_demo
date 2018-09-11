@@ -137,6 +137,7 @@ for i in range(20000):
         # print get_variable_value(label_index_true)
 
 
+
         print('>>>>>')
         # print(
         #     sess.run([h_conv1_z[0][0][0][:], b_conv1, (h_conv1_z + b_conv1)[0][0][0][:],
