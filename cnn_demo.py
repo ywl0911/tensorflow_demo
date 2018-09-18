@@ -104,10 +104,9 @@ accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))
 
 sess.run(tf.initialize_all_variables())
 
-
 # calculating test accuracy
 test_batch_size = 1000
-test_data = mnist.test.images[:test_batch_size].reshape((-1, 28, 28))
+test_data = mnist.test.data[:test_batch_size].reshape((-1, 28, 28))
 test_data_new = []
 for value in test_data:
     temp = value
@@ -125,18 +124,16 @@ for i in range(20000):
     if i % 1 == 0:
         train_accuracy = accuracy.eval(feed_dict={
             x: batch[0], y_: batch[1], keep_prob: 0.5})
-        print "step %d:\n training accuracy %g" % (i, train_accuracy)
+        print("step %d:\n training accuracy %g" % (i, train_accuracy))
 
         # print "test accuracy %g" % accurac[0][0][0][0]y.eval(feed_dict={
         #     x: mnist.test.images, y_: mnist.test.labels, keep_prob: 0.5})
-        print "test accuracy_new %g" % get_variable_value(accuracy)
+        print("test accuracy_new %g" % get_variable_value(accuracy))
         # print get_variable_value(y_predict)
         # print get_variable_value(label_index_predict)
         #
         # print get_variable_value(y_)
         # print get_variable_value(label_index_true)
-
-
 
         print('>>>>>')
         # print(
