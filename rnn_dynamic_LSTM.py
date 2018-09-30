@@ -29,8 +29,8 @@ x = tf.reshape(x, shape=[-1, sequence_length, frame_size])
 # 先把输入转换为dynamic_rnn接受的形状：batch_size,sequence_length,frame_size这样子的
 
 # 以下两种写法可以互换
-# rnn_cell = tf.nn.rnn_cell.BasicLSTMCell(hidden_num, forget_bias=1.0, state_is_tuple=True)
-rnn_cell = tf.contrib.rnn.BasicLSTMCell(num_units=hidden_num, forget_bias=1.0, state_is_tuple=True)
+rnn_cell = tf.nn.rnn_cell.BasicLSTMCell(hidden_num, forget_bias=1.0, state_is_tuple=True)
+# rnn_cell = tf.contrib.rnn.BasicLSTMCell(num_units=hidden_num, forget_bias=1.0, state_is_tuple=True)
 # rnn_cell.output_size为rnn隐藏层节点个数，即hidden_num
 
 output, states = tf.nn.dynamic_rnn(rnn_cell, x, dtype=tf.float32)
