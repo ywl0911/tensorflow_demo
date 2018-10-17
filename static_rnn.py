@@ -31,20 +31,22 @@ x = tf.placeholder("float", [None, time_steps, n_input])
 y = tf.placeholder("float", [None, n_classes])
 
 # processing the input tensor from [batch_size,n_steps,n_input] to "time_steps" number of [batch_size,n_input] tensors
-# input = tf.reshape(x, [-1,n_input])
-input = tf.unstack(x, num=time_steps, axis=1)
-# unstack，相对于reshape函数，但是reshape函数能够reshape成任意合法的形状
-# unstack只能在固定的维度进行reshape，例如[a,b,c,d]只能reshape成a*[b,c,d]或b*[a,c,d]或c*[a,b,d]或d*[a,b,c]
-
+# input_ = tf.reshape(x, [time_steps, -1, n_input])
+input = tf.unstack(x, axis=1)  # reshape成n_steps*-1
 
 # defining the network
-# lstm_layer = tf.contrib.rnn.BasicLSTMCell(num_units, forget_bias=1)
-lstm_layer = tf.nn.rnn_cell.GRUCell(num_units)
+lstm_layer = tf.contrib.rnn.BasicLSTMCell(num_units, forget_bias=1)
+# lstm_layer = tf.nn.rnn_cell.BasicLSTMCell(num_units, forget_bias=1)
 
-outputs, _ = tf.contrib.rnn.static_rnn(lstm_layer, input, dtype="float32")
+# lstm_layer = tf.nn.rnn_cell.GRUCell(num_units)
 
+# outputs, _ = tf.contrib.rnn.static_rnn(lstm_layer, input, dtype="float32")
+outputs, states = tf.nn.static_rnn(lstm_layer, input, dtype="float32")
+# print(outputs.shape)
+
+h_state = outputs[-1]
 # converting last output of dimension [batch_size,num_units] to [batch_size,n_classes] by out_weight multiplication
-prediction = tf.sigmoid(tf.matmul(outputs[-1], out_weights) + out_bias)
+prediction = tf.sigmoid(tf.matmul(h_state, out_weights) + out_bias)
 
 # loss_function
 loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=prediction, labels=y))
