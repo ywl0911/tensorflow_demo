@@ -2,6 +2,7 @@ import tensorflow as tf
 from tensorflow.examples.tutorials.mnist import input_data
 from tensorflow.contrib import rnn
 import os
+import numpy as np
 
 os.chdir('/home/ywl/Documents/python/tensorflow_demo')
 mnist = input_data.read_data_sets("./MNIST_data", one_hot=True)
@@ -23,17 +24,20 @@ y = tf.placeholder(dtype=tf.float32, shape=[None, n_classes], name="expected_y")
 weights = tf.Variable(tf.truncated_normal(shape=[hidden_num, n_classes]))
 bias = tf.Variable(tf.zeros(shape=[n_classes]))
 
-# 定义RNN网络
-# def RNN(x):
-x = tf.reshape(x, shape=[-1, sequence_length, frame_size])
+x_input_time_major_false = tf.reshape(x, shape=[-1, sequence_length, frame_size])
+# 此时x_input的shape为[batch_size * time_step_length * frame_size],此shape对应time_major=False
+
+x_input_time_major_true = tf.stack(tf.unstack(x_input_time_major_false, axis=1), axis=0)
+# x_input = tf.reshape(x, shape=[sequence_length, -1, frame_size])
+
+# print(x_input.shape)
 # 先把输入转换为dynamic_rnn接受的形状：batch_size,sequence_length,frame_size这样子的
 
 # 以下两种写法可以互换
-rnn_cell = tf.nn.rnn_cell.BasicLSTMCell(hidden_num, forget_bias=1.0, state_is_tuple=True)
-# rnn_cell = tf.contrib.rnn.BasicLSTMCell(num_units=hidden_num, forget_bias=1.0, state_is_tuple=True)
-# rnn_cell.output_size为rnn隐藏层节点个数，即hidden_num
+# rnn_cell = tf.nn.rnn_cell.BasicLSTMCell(hidden_num, forget_bias=1.0, state_is_tuple=True)
+rnn_cell = tf.contrib.rnn.BasicLSTMCell(num_units=hidden_num, forget_bias=1.0, state_is_tuple=True)# rnn_cell.output_size为rnn隐藏层节点个数，即hidden_num
 
-output, states = tf.nn.dynamic_rnn(rnn_cell, x, dtype=tf.float32)
+output, states = tf.nn.dynamic_rnn(rnn_cell, x_input_time_major_true, dtype=tf.float32, time_major=True)
 # 此时output就是一个[batch_size,sequence_length,rnn_cell.output_size]形状的tensor
 # 此时state为tuple，（c_state,h_state）,其中c_state和h_state的size均为[batch_size,rnn_cell.output_size]
 # c_state=state.c/state[0] # h_state=state.h/state[1]
@@ -41,8 +45,9 @@ output, states = tf.nn.dynamic_rnn(rnn_cell, x, dtype=tf.float32)
 
 c_state, h_state = states
 
-outputs = h_state
-y_pred = tf.nn.softmax(tf.matmul(outputs, weights) + bias, 1)
+outputs = tf.stack(tf.unstack(output, num=batch_size, axis=1), axis=0)
+
+y_pred = tf.nn.softmax(tf.matmul(outputs[:, -1, :], weights) + bias, 1)
 
 cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=y_pred, labels=y))
 
@@ -57,10 +62,10 @@ testx, testy = mnist.test.next_batch(batch_size)
 while step < train_step:
     batch_x, batch_y = mnist.train.next_batch(batch_size)
     #    batch_x=tf.reshape(batch_x,shape=[batch_size,sequence_length,frame_size])
-    _loss, __ = sess.run([cost, train], feed_dict={x: batch_x.reshape([-1, sequence_length, frame_size]), y: batch_y})
+    _loss, __ = sess.run([cost, train], feed_dict={x: batch_x, y: batch_y})
     if step % display_step == 0:
-        acc, loss, s, o = sess.run([accuracy, cost, h_state[1][:5], output[:, -1, :][1][:5]],
-                                   feed_dict={x: testx.reshape([-1, sequence_length, frame_size]), y: testy})
+        acc, loss, s, o = sess.run([accuracy, cost, h_state[1][:5], outputs[:, -1, :][1][:5]],
+                                   feed_dict={x: testx, y: testy})
         print('step:', step, '\tacc:', round(acc, 4), '\tloss:', loss)
         print(s)
         print(o)
