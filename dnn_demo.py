@@ -43,7 +43,8 @@ cross_entropy = -tf.reduce_mean(y * tf.log(y_pred))
 # weight = tf.constant([0.1,0.1,0.1,0.1,0.1,0.1,0.05,0.05,0.05,0.25])
 # cross_entropy = -tf.reduce_mean(y * tf.log(y_pred) * weight)
 
-train_step = tf.train.GradientDescentOptimizer(0.3).minimize(cross_entropy)
+train_step = tf.train.AdamOptimizer(0.03).minimize(cross_entropy)
+# train_step = tf.train.GradientDescentOptimizer(0.3).minimize(cross_entropy)
 init = tf.global_variables_initializer()
 sess = tf.Session()
 sess.run(init)
@@ -57,4 +58,4 @@ for i in range(100000):
     a = sess.run(cross_entropy, feed_dict={x: batch_xs, y: batch_ys})
     b = sess.run(accuracy, feed_dict={x: mnist.test.images, y: mnist.test.labels})
     print('loss:', a, 'accuracy:', b)
-    print(cross_entropy.shape)
+
