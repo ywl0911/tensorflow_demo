@@ -35,8 +35,10 @@ x_input_time_major_true = tf.stack(tf.unstack(x_input_time_major_false, axis=1),
 
 # 以下两种写法可以互换
 # rnn_cell = tf.nn.rnn_cell.BasicLSTMCell(hidden_num, forget_bias=1.0, state_is_tuple=True)
-rnn_cell = tf.contrib.rnn.BasicLSTMCell(num_units=hidden_num, forget_bias=1.0, state_is_tuple=True)# rnn_cell.output_size为rnn隐藏层节点个数，即hidden_num
+rnn_cell = tf.contrib.rnn.BasicLSTMCell(num_units=hidden_num, forget_bias=1.0,
+                                        state_is_tuple=True)  # rnn_cell.output_size为rnn隐藏层节点个数，即hidden_num
 
+# output, states = tf.nn.dynamic_rnn(rnn_cell, x_input_time_major_false, dtype=tf.float32, time_major=False)
 output, states = tf.nn.dynamic_rnn(rnn_cell, x_input_time_major_true, dtype=tf.float32, time_major=True)
 # 此时output就是一个[batch_size,sequence_length,rnn_cell.output_size]形状的tensor
 # 此时state为tuple，是最后一个时刻的（c_state,h_state），其中c_state和h_state的size均为[batch_size,rnn_cell.output_size]
